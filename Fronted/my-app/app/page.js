@@ -1,6 +1,6 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 
 export default function Home() {
@@ -9,22 +9,26 @@ export default function Home() {
   const [response, setResponse] = useState('');
   const [characterNames, setCharacterNames] = useState([]);
   const [selectedCharacter, setSelectedCharacter] = useState('');
+  const [isAddingStory, setIsAddingStory] = useState(false);
+  const [isAskingQuery, setIsAskingQuery] = useState(false);
 
   const handleAddStory = async () => {
+    setIsAddingStory(true);
     try {
-        // First, add the story
-        await axios.post('http://localhost:3001/add', { story });
-        const { data } = await axios.post('http://localhost:3001/charactername', { story });
-        setCharacterNames(data.response.split(', '));
-
-        setStory('');
+      await axios.post('http://localhost:3001/add', { story });
+      const { data } = await axios.post('http://localhost:3001/charactername', { story });
+      setCharacterNames(data.response.split(', '));
+      setStory('');
     } catch (error) {
-        console.error('Error:', error);
-        alert('An error occurred while adding the story or fetching character names.');
+      console.error('Error:', error);
+      alert('An error occurred while adding the story or fetching character names.');
+    } finally {
+      setIsAddingStory(false);
     }
   };
 
   const handleAskQuery = async () => {
+    setIsAskingQuery(true);
     try {
       const res = await axios.post('http://localhost:3001/ask', { query, characterName: selectedCharacter });
       setResponse(res.data.response);
@@ -32,6 +36,8 @@ export default function Home() {
     } catch (error) {
       console.error('Error processing query:', error);
       alert('An error occurred while processing your query.');
+    } finally {
+      setIsAskingQuery(false);
     }
   };
 
@@ -56,9 +62,18 @@ export default function Home() {
           />
           <button
             onClick={handleAddStory}
-            className="mt-4 w-full py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition duration-300"
+            disabled={isAddingStory}
+            className={`mt-4 w-full py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition duration-300 ${isAddingStory ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            Add Story
+            {isAddingStory ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Adding Story...
+              </span>
+            ) : 'Add Story'}
           </button>
         </div>
 
@@ -95,9 +110,18 @@ export default function Home() {
             />
             <button
               onClick={handleAskQuery}
-              className="mt-4 w-full py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition duration-300"
+              disabled={isAskingQuery}
+              className={`mt-4 w-full py-2 bg-blue-600 text-white font-semibold rounded-md hover:bg-blue-700 transition duration-300 ${isAskingQuery ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
-              Ask Question
+              {isAskingQuery ? (
+                <span className="flex items-center justify-center">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Asking Question...
+                </span>
+              ) : 'Ask Question'}
             </button>
           </div>
         )}
